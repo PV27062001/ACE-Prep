@@ -135,11 +135,16 @@ const App: React.FC = () => {
     <div className="max-w-4xl mx-auto px-4 py-12">
       <div className="flex items-center justify-between mb-12">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-4">Cloud Engineer Exam Prep</h1>
-          <p className="text-lg text-gray-600">Select a topic to start practicing or take the full exam.</p>
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">Cloud Engineer Exam Prep</h1>
+          <p className="text-sm text-gray-500">Select a topic to start practicing or take the full exam.</p>
         </div>
         <div className="space-x-2">
-          <button onClick={() => setHistoryOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg">Scorecard</button>
+          <button onClick={() => setHistoryOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17a4 4 0 100-8 4 4 0 000 8zm0 0v4m0-4H7m4 0h4" />
+            </svg>
+            Scorecard
+          </button>
         </div>
       </div>
       
