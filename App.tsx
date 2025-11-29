@@ -21,7 +21,7 @@ const App: React.FC = () => {
 
   // history state and modal
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyAttempts, setHistoryAttempts] = useState<Array<{topic:string;score:number;total:number;date:string}>>([]);
+  const [historyAttempts, setHistoryAttempts] = useState<Array<{topic:string;score:number;total:number;date:string;markedDone?:boolean}>>([]);
 
   const HISTORY_KEY = 'ceep_score_history';
   const HISTORY_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
@@ -35,7 +35,7 @@ const App: React.FC = () => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
       if (!raw) return [];
-      const parsed = JSON.parse(raw) as Array<{topic:string;score:number;total:number;date:string}>;
+      const parsed = JSON.parse(raw) as Array<{topic:string;score:number;total:number;date:string;markedDone?:boolean}>;
       const pruned = pruneOld(parsed);
       if (pruned.length !== parsed.length) localStorage.setItem(HISTORY_KEY, JSON.stringify(pruned));
       return pruned;
@@ -44,10 +44,38 @@ const App: React.FC = () => {
     }
   };
 
-  const saveAttempt = (topic: string, score: number, total: number) => {
+  const saveAttempt = (topic: string, score: number, total: number, markedDone?: boolean) => {
     try {
       const cur = loadHistory();
-      const entry = { topic, score, total, date: new Date().toISOString() };
+      const now = new Date().toISOString();
+
+      if (markedDone) {
+        // If there's already a markedDone for this topic, avoid duplicating.
+        const alreadyMarked = cur.some(e => e.topic === topic && e.markedDone);
+        if (alreadyMarked) {
+          return;
+        }
+
+        // If there's an existing entry for this topic, update its markedDone flag (prefer latest entry).
+        const idx = cur.findIndex(e => e.topic === topic);
+        if (idx !== -1) {
+          const updated = [...cur];
+          updated[idx] = { ...updated[idx], markedDone: true, date: now };
+          localStorage.setItem(HISTORY_KEY, JSON.stringify(updated));
+          setHistoryAttempts(updated);
+          return;
+        }
+
+        // Otherwise add a new markedDone entry at the front.
+        const entry = { topic, score, total, date: now, markedDone: true } as const;
+        const next = [entry, ...cur];
+        localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+        setHistoryAttempts(next);
+        return;
+      }
+
+      // Regular attempt: always add to history (most recent first)
+      const entry = { topic, score, total, date: now };
       const next = [entry, ...cur];
       localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
       setHistoryAttempts(next);
@@ -121,7 +149,7 @@ const App: React.FC = () => {
     setQuizState(prev => ({ ...prev, completed: true, score }));
     setCurrentScreen(AppScreen.RESULT);
     // persist history (topic-wise)
-    saveAttempt(selectedTopic ?? 'Unknown', score, activeQuestions.length);
+    saveAttempt(selectedTopic ?? 'Unknown', score, activeQuestions.length, false);
   };
 
   const resetApp = () => {
@@ -168,14 +196,19 @@ const App: React.FC = () => {
 
       <h2 className="text-xl font-semibold text-gray-800 mb-4 px-1">Practice by Topic</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {topics.map(topic => (
-          <TopicCard 
-            key={topic}
-            topic={topic}
-            count={getQuestionsByTopic(topic).length}
-            onClick={() => startQuiz(topic)}
-          />
-        ))}
+        {topics.map(topic => {
+          const topicTotal = getQuestionsByTopic(topic).length;
+          const completed = historyAttempts.some(h => h.topic === topic && (h.markedDone || h.total === topicTotal));
+          return (
+            <TopicCard 
+              key={topic}
+              topic={topic}
+              count={topicTotal}
+              onClick={() => startQuiz(topic)}
+              completed={completed}
+            />
+          );
+        })}
       </div>
     </div>
   );
@@ -257,6 +290,8 @@ const App: React.FC = () => {
     const unansweredCount = totalCount - Object.keys(quizState.answers).length;
     const incorrectCount = totalCount - correctCount - unansweredCount;
     const percentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
+    const topicTotal = selectedTopic ? getQuestionsByTopic(selectedTopic).length : 0;
+    const topicCompleted = selectedTopic ? historyAttempts.some(h => h.topic === selectedTopic && (h.markedDone || h.total === topicTotal)) : false;
 
     return (
       <div className="max-w-4xl mx-auto px-4 py-12">
@@ -324,6 +359,18 @@ const App: React.FC = () => {
                 className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
               >
                 <RotateCcw className="w-5 h-5 mr-2" /> Retry Topic
+              </button>
+              <button
+                onClick={() => {
+                  // mark topic as done in cache
+                  if (selectedTopic) {
+                    saveAttempt(selectedTopic, quizState.score, activeQuestions.length, true);
+                  }
+                }}
+                disabled={topicCompleted}
+                className={`flex items-center px-6 py-3 rounded-lg font-medium transition-colors shadow-md ${topicCompleted ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg'}`}
+              >
+                {topicCompleted ? 'Marked' : 'Mark As Done'}
               </button>
             </div>
           </div>

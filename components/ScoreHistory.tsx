@@ -6,6 +6,7 @@ interface Attempt {
   score: number;
   total: number;
   date: string; // ISO
+  markedDone?: boolean;
 }
 
 interface Props {
@@ -65,6 +66,7 @@ const ScoreHistory: React.FC<Props> = ({ isOpen, onClose, attempts, onClear }) =
                       <div>
                         <div className="text-sm text-gray-600">{new Date(a.date).toLocaleString()}</div>
                         <div className="font-medium">{a.score} / {a.total} • <span className="text-indigo-600">{Math.round((a.score / a.total) * 100)}%</span></div>
+                        {a.markedDone && <div className="text-xs text-green-700 mt-1">Marked done</div>}
                       </div>
                     </div>
                   ))}
