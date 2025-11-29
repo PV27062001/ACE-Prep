@@ -26,17 +26,18 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, selectedOptionLab
             <button
               key={option.label}
               onClick={() => onSelect(option.label)}
-              className={`w-full text-left p-4 rounded-lg border-2 transition-all flex items-start ${
+              className={`w-full text-left p-4 rounded-lg border-2 transition-transform transform-gpu flex items-start bg-white ${
                 isSelected
-                  ? 'border-blue-500 bg-blue-50'
-                  : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                  ? 'border-blue-500 bg-blue-50 shadow-md scale-100'
+                  : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50 hover:scale-[1.01]'
               }`}
+              aria-pressed={isSelected}
             >
               <div
-                className={`flex-shrink-0 w-6 h-6 rounded-full border-2 mr-4 flex items-center justify-center text-xs font-bold mt-0.5 ${
+                className={`flex-shrink-0 w-6 h-6 rounded-full border-2 mr-4 flex items-center justify-center text-xs font-bold mt-0.5 transition-all ${
                   isSelected
-                    ? 'border-blue-500 bg-blue-500 text-white'
-                    : 'border-gray-400 text-gray-500'
+                    ? 'border-blue-500 bg-blue-500 text-white scale-110'
+                    : 'border-gray-400 text-gray-500 bg-white'
                 }`}
               >
                 {option.label}
