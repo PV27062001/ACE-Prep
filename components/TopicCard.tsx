@@ -12,7 +12,7 @@ const TopicCard: React.FC<TopicCardProps> = ({ topic, count, onClick, completed 
   return (
     <button
       onClick={onClick}
-      className={`relative overflow-hidden p-5 rounded-xl shadow-sm transition-transform transform-gpu hover:-translate-y-1 border text-left w-full group ${
+      className={`relative overflow-hidden p-4 md:p-5 rounded-xl shadow-sm transition-transform transform-gpu hover:-translate-y-1 border text-left w-full group ${
         completed ? 'border-green-100 bg-green-50' : 'border-gray-100 bg-white'
       }`}
     >

@@ -35,19 +35,19 @@ const ScoreHistory: React.FC<Props> = ({ isOpen, onClose, attempts, onClear }) =
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="absolute inset-0 bg-black/40" onClick={onClose}></div>
-      <div className="relative bg-white rounded-xl shadow-2xl w-[90%] md:w-3/4 max-h-[90vh] overflow-auto">
-        <div className="flex items-center justify-between p-4 border-b">
+      <div className="relative bg-white rounded-xl shadow-2xl w-[95%] md:w-3/4 max-h-[90vh] overflow-auto">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between p-4 md:p-6 border-b gap-4">
           <div>
             <h3 className="text-lg font-semibold">Score History</h3>
             <p className="text-sm text-gray-500">Performance by topic — last 30 days</p>
           </div>
           <div className="flex items-center space-x-2">
-            <button onClick={onClear} className="text-sm px-3 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100">Reset Cache</button>
+            <button onClick={onClear} className="text-sm px-3 py-1 bg-red-50 text-red-700 rounded hover:bg-red-100 whitespace-nowrap">Reset Cache</button>
             <button onClick={onClose} className="p-2 rounded hover:bg-gray-100"><X className="w-4 h-4"/></button>
           </div>
         </div>
 
-        <div className="p-6 space-y-6">
+        <div className="p-4 md:p-6 space-y-6">
           {topicSummaries.length === 0 ? (
             <p className="text-center text-gray-500">No history available.</p>
           ) : (
