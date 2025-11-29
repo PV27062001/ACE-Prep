@@ -1,9 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { getTopics, getQuestionsByTopic, getAllQuestions } from './data/questions';
 import { AppScreen, Question, QuizState } from './types';
 import TopicCard from './components/TopicCard';
 import QuestionCard from './components/QuestionCard';
 import ResultChart from './components/ResultChart';
+import ScoreHistory from './components/ScoreHistory';
 import { ChevronRight, ChevronLeft, CheckCircle, AlertCircle, RotateCcw, Home, Layers } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -17,6 +18,53 @@ const App: React.FC = () => {
     completed: false,
     score: 0
   });
+
+  // history state and modal
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [historyAttempts, setHistoryAttempts] = useState<Array<{topic:string;score:number;total:number;date:string}>>([]);
+
+  const HISTORY_KEY = 'ceep_score_history';
+  const HISTORY_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
+
+  const pruneOld = (items: Array<{date:string}>) => {
+    const cutoff = Date.now() - HISTORY_MAX_AGE_MS;
+    return items.filter(it => new Date(it.date).getTime() >= cutoff);
+  };
+
+  const loadHistory = () => {
+    try {
+      const raw = localStorage.getItem(HISTORY_KEY);
+      if (!raw) return [];
+      const parsed = JSON.parse(raw) as Array<{topic:string;score:number;total:number;date:string}>;
+      const pruned = pruneOld(parsed);
+      if (pruned.length !== parsed.length) localStorage.setItem(HISTORY_KEY, JSON.stringify(pruned));
+      return pruned;
+    } catch (e) {
+      return [];
+    }
+  };
+
+  const saveAttempt = (topic: string, score: number, total: number) => {
+    try {
+      const cur = loadHistory();
+      const entry = { topic, score, total, date: new Date().toISOString() };
+      const next = [entry, ...cur];
+      localStorage.setItem(HISTORY_KEY, JSON.stringify(next));
+      setHistoryAttempts(next);
+    } catch (e) {
+      // ignore
+    }
+  };
+
+  const clearHistory = () => {
+    localStorage.removeItem(HISTORY_KEY);
+    setHistoryAttempts([]);
+  };
+
+  useEffect(() => {
+    setHistoryAttempts(loadHistory());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const topics = useMemo(() => getTopics(), []);
   const allQuestionsCount = useMemo(() => getAllQuestions().length, []);
@@ -72,6 +120,8 @@ const App: React.FC = () => {
     });
     setQuizState(prev => ({ ...prev, completed: true, score }));
     setCurrentScreen(AppScreen.RESULT);
+    // persist history (topic-wise)
+    saveAttempt(selectedTopic ?? 'Unknown', score, activeQuestions.length);
   };
 
   const resetApp = () => {
@@ -83,9 +133,14 @@ const App: React.FC = () => {
 
   const renderHome = () => (
     <div className="max-w-4xl mx-auto px-4 py-12">
-      <div className="text-center mb-12">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">Cloud Engineer Exam Prep</h1>
-        <p className="text-lg text-gray-600">Select a topic to start practicing or take the full exam.</p>
+      <div className="flex items-center justify-between mb-12">
+        <div>
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Cloud Engineer Exam Prep</h1>
+          <p className="text-lg text-gray-600">Select a topic to start practicing or take the full exam.</p>
+        </div>
+        <div className="space-x-2">
+          <button onClick={() => setHistoryOpen(true)} className="px-4 py-2 bg-indigo-600 text-white rounded-lg">Scorecard</button>
+        </div>
       </div>
       
       <div className="mb-8">
@@ -124,6 +179,7 @@ const App: React.FC = () => {
     const currentQuestion = activeQuestions[currentQuestionIndex];
     const isLastQuestion = currentQuestionIndex === activeQuestions.length - 1;
     const isFirstQuestion = currentQuestionIndex === 0;
+    const currentAnswer = quizState.answers[currentQuestion.id];
     const progress = ((currentQuestionIndex + 1) / activeQuestions.length) * 100;
 
     return (
@@ -151,6 +207,10 @@ const App: React.FC = () => {
           onSelect={handleAnswerSelect}
         />
 
+        {!currentAnswer && (
+          <div className="mt-4 text-sm text-red-600">Please select an option to continue.</div>
+        )}
+
         <div className="flex justify-between mt-8">
           <button
             onClick={() => navigateQuestion('prev')}
@@ -167,14 +227,16 @@ const App: React.FC = () => {
           {isLastQuestion ? (
             <button
               onClick={finishQuiz}
-              className="bg-green-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-green-700 transition-colors flex items-center shadow-md hover:shadow-lg"
+              disabled={!currentAnswer}
+              className={`px-8 py-3 rounded-lg font-medium flex items-center shadow-md transition-colors ${!currentAnswer ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg'}`}
             >
               Finish Exam <CheckCircle className="w-5 h-5 ml-2" />
             </button>
           ) : (
             <button
               onClick={() => navigateQuestion('next')}
-              className="bg-blue-600 text-white px-8 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors flex items-center shadow-md hover:shadow-lg"
+              disabled={!currentAnswer}
+              className={`px-8 py-3 rounded-lg font-medium flex items-center shadow-md transition-colors ${!currentAnswer ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg'}`}
             >
               Next <ChevronRight className="w-5 h-5 ml-2" />
             </button>
@@ -321,6 +383,7 @@ const App: React.FC = () => {
       {currentScreen === AppScreen.HOME && renderHome()}
       {currentScreen === AppScreen.QUIZ && renderQuiz()}
       {currentScreen === AppScreen.RESULT && renderResult()}
+      <ScoreHistory isOpen={historyOpen} onClose={() => setHistoryOpen(false)} attempts={historyAttempts} onClear={clearHistory} />
     </div>
   );
 };
