@@ -160,8 +160,8 @@ const App: React.FC = () => {
   };
 
   const renderHome = () => (
-    <div className="max-w-4xl mx-auto px-4 py-12">
-      <div className="flex items-center justify-between mb-12">
+    <div className="max-w-4xl mx-auto px-4 py-6 md:py-12">
+      <div className="flex items-center justify-between mb-8 md:mb-12">
         <div>
           <h1 className="text-4xl font-bold text-gray-900 mb-2">Cloud Engineer Exam Prep</h1>
           <p className="text-sm text-gray-500">Select a topic to start practicing or take the full exam.</p>
@@ -179,7 +179,7 @@ const App: React.FC = () => {
       <div className="mb-8">
         <button
           onClick={() => startQuiz("Full Exam")}
-          className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all w-full group flex items-center justify-between"
+          className="bg-gradient-to-r from-blue-600 to-indigo-700 text-white p-4 md:p-6 rounded-xl shadow-lg hover:shadow-xl transition-all w-full group flex items-center justify-between"
         >
           <div className="flex items-center space-x-4">
             <div className="bg-white/20 p-3 rounded-lg">
@@ -197,13 +197,12 @@ const App: React.FC = () => {
       <h2 className="text-xl font-semibold text-gray-800 mb-4 px-1">Practice by Topic</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {topics.map(topic => {
-          const topicTotal = getQuestionsByTopic(topic).length;
-          const completed = historyAttempts.some(h => h.topic === topic && (h.markedDone || h.total === topicTotal));
+          const completed = historyAttempts.some(h => h.topic === topic && h.markedDone);
           return (
             <TopicCard 
               key={topic}
               topic={topic}
-              count={topicTotal}
+              count={getQuestionsByTopic(topic).length}
               onClick={() => startQuiz(topic)}
               completed={completed}
             />
@@ -249,11 +248,11 @@ const App: React.FC = () => {
           <div className="mt-4 text-sm text-red-600">Please select an option to continue.</div>
         )}
 
-        <div className="flex justify-between mt-8">
+        <div className="flex flex-col-reverse md:flex-row justify-between gap-4 md:gap-0 mt-8">
           <button
             onClick={() => navigateQuestion('prev')}
             disabled={isFirstQuestion}
-            className={`flex items-center px-6 py-3 rounded-lg font-medium transition-colors ${
+            className={`flex items-center justify-center md:justify-start px-4 md:px-6 py-3 rounded-lg font-medium transition-colors ${
               isFirstQuestion 
                 ? 'text-gray-300 cursor-not-allowed' 
                 : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
@@ -266,7 +265,7 @@ const App: React.FC = () => {
             <button
               onClick={finishQuiz}
               disabled={!currentAnswer}
-              className={`px-8 py-3 rounded-lg font-medium flex items-center shadow-md transition-colors ${!currentAnswer ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg'}`}
+              className={`w-full md:w-auto px-6 md:px-8 py-3 rounded-lg font-medium flex items-center justify-center shadow-md transition-colors ${!currentAnswer ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg'}`}
             >
               Finish Exam <CheckCircle className="w-5 h-5 ml-2" />
             </button>
@@ -274,7 +273,7 @@ const App: React.FC = () => {
             <button
               onClick={() => navigateQuestion('next')}
               disabled={!currentAnswer}
-              className={`px-8 py-3 rounded-lg font-medium flex items-center shadow-md transition-colors ${!currentAnswer ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg'}`}
+              className={`w-full md:w-auto px-6 md:px-8 py-3 rounded-lg font-medium flex items-center justify-center shadow-md transition-colors ${!currentAnswer ? 'bg-gray-200 text-gray-400 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700 hover:shadow-lg'}`}
             >
               Next <ChevronRight className="w-5 h-5 ml-2" />
             </button>
@@ -290,19 +289,18 @@ const App: React.FC = () => {
     const unansweredCount = totalCount - Object.keys(quizState.answers).length;
     const incorrectCount = totalCount - correctCount - unansweredCount;
     const percentage = totalCount > 0 ? Math.round((correctCount / totalCount) * 100) : 0;
-    const topicTotal = selectedTopic ? getQuestionsByTopic(selectedTopic).length : 0;
-    const topicCompleted = selectedTopic ? historyAttempts.some(h => h.topic === selectedTopic && (h.markedDone || h.total === topicTotal)) : false;
+    const topicCompleted = selectedTopic ? historyAttempts.some(h => h.topic === selectedTopic && h.markedDone) : false;
 
     return (
-      <div className="max-w-4xl mx-auto px-4 py-12">
+      <div className="max-w-4xl mx-auto px-4 py-6 md:py-12">
         <div className="bg-white rounded-2xl shadow-xl overflow-hidden">
-          <div className="bg-blue-600 p-8 text-center text-white">
+          <div className="bg-blue-600 p-6 md:p-8 text-center text-white">
             <h2 className="text-3xl font-bold mb-2">Quiz Completed!</h2>
             <p className="opacity-90">{selectedTopic}</p>
           </div>
           
-          <div className="p-8 md:p-12">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+          <div className="p-6 md:p-12">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 items-center">
               <div>
                 <div className="text-center mb-8">
                   <span className="text-6xl font-bold text-gray-900">{percentage}%</span>
@@ -347,16 +345,16 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            <div className="mt-12 flex justify-center space-x-4">
+            <div className="mt-12 flex flex-col md:flex-row justify-center gap-3 md:gap-4">
               <button
                 onClick={resetApp}
-                className="flex items-center px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+                className="flex items-center justify-center px-6 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
               >
                 <Home className="w-5 h-5 mr-2" /> Back to Home
               </button>
               <button
                 onClick={() => startQuiz(selectedTopic!)}
-                className="flex items-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
+                className="flex items-center justify-center px-6 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors shadow-md hover:shadow-lg"
               >
                 <RotateCcw className="w-5 h-5 mr-2" /> Retry Topic
               </button>
@@ -368,7 +366,7 @@ const App: React.FC = () => {
                   }
                 }}
                 disabled={topicCompleted}
-                className={`flex items-center px-6 py-3 rounded-lg font-medium transition-colors shadow-md ${topicCompleted ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg'}`}
+                className={`flex items-center justify-center px-6 py-3 rounded-lg font-medium transition-colors shadow-md ${topicCompleted ? 'bg-gray-200 text-gray-500 cursor-not-allowed' : 'bg-green-600 text-white hover:bg-green-700 hover:shadow-lg'}`}
               >
                 {topicCompleted ? 'Marked' : 'Mark As Done'}
               </button>
@@ -377,7 +375,7 @@ const App: React.FC = () => {
         </div>
 
         {/* Detailed Review Section */}
-        <div className="mt-12 space-y-6">
+        <div className="mt-8 md:mt-12 space-y-6">
           <h3 className="text-2xl font-bold text-gray-800 mb-6">Review Answers</h3>
           {activeQuestions.map((q, idx) => {
             const userAnswer = quizState.answers[q.id];
