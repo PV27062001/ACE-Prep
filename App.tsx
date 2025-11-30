@@ -91,6 +91,16 @@ const App: React.FC = () => {
 
   useEffect(() => {
     setHistoryAttempts(loadHistory());
+    
+    // Listen for storage changes from other tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === HISTORY_KEY) {
+        setHistoryAttempts(loadHistory());
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
