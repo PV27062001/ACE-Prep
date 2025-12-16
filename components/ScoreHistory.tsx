@@ -1,18 +1,11 @@
 import React from 'react';
 import { X } from 'lucide-react';
-
-interface Attempt {
-  topic: string;
-  score: number;
-  total: number;
-  date: string; // ISO
-  markedDone?: boolean;
-}
+import { ScoreHistoryEntry } from '../types';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  attempts: Attempt[];
+  attempts: ScoreHistoryEntry[];
   onClear: () => void;
 }
 

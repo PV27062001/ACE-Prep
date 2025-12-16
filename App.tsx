@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { getTopics, getQuestionsByTopic, getAllQuestions } from './data/questions';
-import { AppScreen, Question, QuizState } from './types';
+import { AppScreen, Question, QuizState, ScoreHistoryEntry } from './types';
 import TopicCard from './components/TopicCard';
 import QuestionCard from './components/QuestionCard';
 import ResultChart from './components/ResultChart';
@@ -23,7 +23,7 @@ const App: React.FC = () => {
   // history state and modal
   const [historyOpen, setHistoryOpen] = useState(false);
   const [tricksOpen, setTricksOpen] = useState(false);
-  const [historyAttempts, setHistoryAttempts] = useState<Array<{topic:string;score:number;total:number;date:string;markedDone?:boolean}>>([]);
+  const [historyAttempts, setHistoryAttempts] = useState<ScoreHistoryEntry[]>([]);
 
   const HISTORY_KEY = 'ceep_score_history';
   const HISTORY_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
@@ -37,7 +37,7 @@ const App: React.FC = () => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
       if (!raw) return [];
-      const parsed = JSON.parse(raw) as Array<{topic:string;score:number;total:number;date:string;markedDone?:boolean}>;
+      const parsed = JSON.parse(raw) as ScoreHistoryEntry[];
       const pruned = pruneOld(parsed);
       if (pruned.length !== parsed.length) localStorage.setItem(HISTORY_KEY, JSON.stringify(pruned));
       return pruned;
