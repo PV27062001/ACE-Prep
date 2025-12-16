@@ -1,10 +1,11 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { getTopics, getQuestionsByTopic, getAllQuestions } from './data/questions';
-import { AppScreen, Question, QuizState } from './types';
+import { AppScreen, Question, QuizState, ScoreHistoryEntry } from './types';
 import TopicCard from './components/TopicCard';
 import QuestionCard from './components/QuestionCard';
 import ResultChart from './components/ResultChart';
 import ScoreHistory from './components/ScoreHistory';
+import TricksPage from './components/TricksPage';
 import { ChevronRight, ChevronLeft, CheckCircle, AlertCircle, RotateCcw, Home, Layers } from 'lucide-react';
 
 const App: React.FC = () => {
@@ -21,7 +22,8 @@ const App: React.FC = () => {
 
   // history state and modal
   const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyAttempts, setHistoryAttempts] = useState<Array<{topic:string;score:number;total:number;date:string;markedDone?:boolean}>>([]);
+  const [tricksOpen, setTricksOpen] = useState(false);
+  const [historyAttempts, setHistoryAttempts] = useState<ScoreHistoryEntry[]>([]);
 
   const HISTORY_KEY = 'ceep_score_history';
   const HISTORY_MAX_AGE_MS = 1000 * 60 * 60 * 24 * 30; // 30 days
@@ -35,7 +37,7 @@ const App: React.FC = () => {
     try {
       const raw = localStorage.getItem(HISTORY_KEY);
       if (!raw) return [];
-      const parsed = JSON.parse(raw) as Array<{topic:string;score:number;total:number;date:string;markedDone?:boolean}>;
+      const parsed = JSON.parse(raw) as ScoreHistoryEntry[];
       const pruned = pruneOld(parsed);
       if (pruned.length !== parsed.length) localStorage.setItem(HISTORY_KEY, JSON.stringify(pruned));
       return pruned;
@@ -171,17 +173,23 @@ const App: React.FC = () => {
 
   const renderHome = () => (
     <div className="max-w-4xl mx-auto px-4 py-6 md:py-12">
-      <div className="flex items-center justify-between mb-8 md:mb-12">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 md:mb-12 gap-4">
         <div>
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">Cloud Engineer Exam Prep</h1>
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">Cloud Engineer Exam Prep</h1>
           <p className="text-sm text-gray-500">Select a topic to start practicing or take the full exam.</p>
         </div>
-        <div className="space-x-2">
-          <button onClick={() => setHistoryOpen(true)} className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5">
+        <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+          <button onClick={() => setTricksOpen(true)} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5">
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+            <span className="hidden sm:inline">Tricks</span>
+          </button>
+          <button onClick={() => setHistoryOpen(true)} className="inline-flex items-center justify-center gap-2 px-4 py-2 bg-gradient-to-r from-indigo-600 to-blue-600 text-white rounded-full shadow-md hover:shadow-lg transition-transform hover:-translate-y-0.5">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 17a4 4 0 100-8 4 4 0 000 8zm0 0v4m0-4H7m4 0h4" />
             </svg>
-            Scorecard
+            <span className="hidden sm:inline">Scorecard</span>
           </button>
         </div>
       </div>
@@ -438,8 +446,12 @@ const App: React.FC = () => {
     );
   };
 
+  if (tricksOpen) {
+    return <TricksPage onBack={() => setTricksOpen(false)} />;
+  }
+
   return (
-    <div className="min-h-screen font-sans">
+    <div className="min-h-screen font-sans bg-gradient-to-br from-blue-50 to-indigo-100">
       {currentScreen === AppScreen.HOME && renderHome()}
       {currentScreen === AppScreen.QUIZ && renderQuiz()}
       {currentScreen === AppScreen.RESULT && renderResult()}

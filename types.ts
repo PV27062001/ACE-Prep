@@ -16,6 +16,14 @@ export interface QuizState {
   score: number;
 }
 
+export interface ScoreHistoryEntry {
+  topic: string;
+  score: number;
+  total: number;
+  date: string;
+  markedDone?: boolean;
+}
+
 export enum AppScreen {
   HOME = 'HOME',
   QUIZ = 'QUIZ',
